@@ -1,19 +1,23 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Hello World!</title>
-  </head>
-  <body>
-    <h1>Hello World!</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using Node.js <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
-
-    <script>
-      // You can also require other files to run in this process
-      require('./renderer.js')
-    </script>
-  </body>
+	<head>
+		<title>Test</title>
+	</head>
+	<body>
+		<script>
+			function captureVideo(){
+				console.log(document.getElementById('1').captureStream());
+			}
+		</script>
+		<video id="1"></video>
+		<button onclick="captureVideo()">Test</button>
+		<script>
+			navigator.mediaDevices.getUserMedia({
+				//use ideal size for cams lower than 1080p
+				video: { width: { min: 1024, ideal: 1920, max: 3840}, height: {min: 576, ideal: 1080, max: 2160} }
+			}).then(stream => {
+				document.getElementById('1').srcObject = stream;
+			});
+		</script>
+	</body>
 </html>
