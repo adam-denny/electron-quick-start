@@ -4,20 +4,66 @@
 		<title>Test</title>
 	</head>
 	<body>
-		<script>
-			function captureVideo(){
-				console.log(document.getElementById('1').captureStream());
+		<style>
+			video {
+				border: 1px solid red;
 			}
-		</script>
-		<video id="1"></video>
-		<button onclick="captureVideo()">Test</button>
+		</style>
+
+		<video height="100" autoplay id="0"></video>
+		<video height="100" autoplay id="1"></video>
+		<video height="100" autoplay id="2"></video>
+		<video height="100" autoplay id="3"></video>
+		<video height="100" autoplay id="4"></video>
+
 		<script>
-			navigator.mediaDevices.getUserMedia({
-				//use ideal size for cams lower than 1080p
-				video: { width: { min: 1024, ideal: 1920, max: 3840}, height: {min: 576, ideal: 1080, max: 2160} }
-			}).then(stream => {
-				document.getElementById('1').srcObject = stream;
-			});
+			function setDevices(){
+				let els = document.getElementsByTagName('video');
+				for(let i = 0; i < els.length; ++i){
+					let camera = els[i];
+					let srcObject = camera.srcObject;
+					if(srcObject) {
+						if(srcObject){
+							let audio = srcObject.getAudioTracks();
+							let video = srcObject.getVideoTracks();
+							if(audio[0]){
+								srcObject.removeTrack(audio[0]);
+							}
+							if(video[0]){
+								srcObject.removeTrack(video[0]);
+							}
+							srcObject = null;
+							camera.srcObject = null;
+						}
+					}
+				}
+					
+				setTimeout(() => {
+					navigator.mediaDevices.enumerateDevices().then((devices, i) => {
+						console.log(devices);
+
+						let cams = devices.filter(device => device.kind === 'videoinput');
+
+						cams.forEach((device, i) => {
+							console.log(device.kind, device.label, device.deviceId);
+							navigator.mediaDevices.getUserMedia({
+								video: { id: {exact: device.deviceId} }
+							}).then(stream => {
+								let el = document.getElementById(String(i));
+								el.srcObject = stream;
+								el.onload = () => {
+									el.play();
+								}
+							}).catch(e => console.error(e));
+						});
+					}).catch(e => console.error(e));
+				}, 2000);
+				
+			}
+
+			navigator.mediaDevices.ondevicechange = setDevices;
+
+			setDevices();	
 		</script>
 	</body>
 </html>
