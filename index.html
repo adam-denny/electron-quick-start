@@ -1,69 +1,83 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Test</title>
-	</head>
-	<body>
-		<style>
-			video {
-				border: 1px solid red;
-			}
-		</style>
 
-		<video height="100" autoplay id="0"></video>
-		<video height="100" autoplay id="1"></video>
-		<video height="100" autoplay id="2"></video>
-		<video height="100" autoplay id="3"></video>
-		<video height="100" autoplay id="4"></video>
+<head>
+	<title>Test</title>
+</head>
 
-		<script>
-			function setDevices(){
-				let els = document.getElementsByTagName('video');
-				for(let i = 0; i < els.length; ++i){
-					let camera = els[i];
-					let srcObject = camera.srcObject;
-					if(srcObject) {
-						if(srcObject){
-							let audio = srcObject.getAudioTracks();
-							let video = srcObject.getVideoTracks();
-							if(audio[0]){
-								srcObject.removeTrack(audio[0]);
-							}
-							if(video[0]){
-								srcObject.removeTrack(video[0]);
-							}
-							srcObject = null;
-							camera.srcObject = null;
+<body>
+	<style>
+		video {
+			border: 1px solid red;
+			width: 100px;
+		}
+	</style>
+
+
+
+	<script>
+		function setDevices() {
+			let els = document.getElementsByTagName('video');
+			for (let i = 0; i < els.length; ++i) {
+				let camera = els[i];
+				let srcObject = camera.srcObject;
+				if (srcObject) {
+					if (srcObject) {
+						let audio = srcObject.getAudioTracks();
+						let video = srcObject.getVideoTracks();
+						if (audio[0]) {
+							srcObject.removeTrack(audio[0]);
 						}
+						if (video[0]) {
+							srcObject.removeTrack(video[0]);
+						}
+						srcObject = null;
+						camera.srcObject = null;
 					}
 				}
-					
-				setTimeout(() => {
-					navigator.mediaDevices.enumerateDevices().then((devices, i) => {
-						console.log(devices);
-
-						let cams = devices.filter(device => device.kind === 'videoinput');
-
-						cams.forEach((device, i) => {
-							console.log(device.kind, device.label, device.deviceId);
-							navigator.mediaDevices.getUserMedia({
-								video: { id: {exact: device.deviceId} }
-							}).then(stream => {
-								let el = document.getElementById(String(i));
-								el.srcObject = stream;
-								el.onload = () => {
-									el.play();
-								}
-							}).catch(e => console.error(e));
-						});
-					}).catch(e => console.error(e));
-				}, 2000);
-				
 			}
 
-			navigator.mediaDevices.ondevicechange = setDevices;
+			//setTimeout(() => {
+			document.body.innerHTML = "";
+			navigator.mediaDevices.enumerateDevices().then((devices, i) => {
+				console.log(devices);
 
-			setDevices();	
-		</script>
-	</body>
+				let cams = devices.filter(device => device.kind === 'videoinput');
+				let len = cams.length;
+
+				for (let i = 0; i < len; ++i) {
+					let device = cams[i];
+
+					console.log(device.kind, device.label, device.deviceId);
+
+					navigator.mediaDevices.getUserMedia({
+						video: { deviceId: { exact: device.deviceId } }
+					}).then(stream => {
+						console.log(device.deviceId, String(i))
+						let el = document.createElement('video')
+						el.autoplay = true;
+						el.src = window.URL.createObjectURL(stream.clone());
+
+						console.log(el.src)
+						el.onload = () => {
+							console.log("load")
+							el.play();
+						}
+
+						document.body.appendChild(el);
+					}).catch(e => console.error(e));
+
+				}
+
+			}).catch(e => console.error(e));
+			//}, 2000);
+
+		}
+
+		navigator.mediaDevices.ondevicechange = setDevices;
+
+		setDevices();	
+	</script>
+</body>
+
 </html>
